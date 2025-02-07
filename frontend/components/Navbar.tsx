@@ -1,3 +1,4 @@
+import { ConnectButton } from "@rainbow-me/rainbowkit";
 import Link from "next/link";
 
 export default function Navbar() {
@@ -25,6 +26,7 @@ export default function Navbar() {
                   <span className="absolute left-0 bottom-0 w-full h-0.5 bg-blue-400 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></span>
                 </Link>
               ))}
+              <ConnectButton chainStatus={"none"} showBalance={false} />
             </div>
           </div>
         </div>
