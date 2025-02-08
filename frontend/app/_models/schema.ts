@@ -8,14 +8,14 @@ interface ITherapist extends Document {
     yearsOfExperience: number;
     specialties: string[];
     email: {
-        type: String,
+        type: string,
         required: true,
         unique: true,
         trim: true,
         lowercase: true
     };
     walletAddress: { 
-        type: String, 
+        type: string, 
         required: true,
         unique: true,
         trim: true

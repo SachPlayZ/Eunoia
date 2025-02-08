@@ -4,13 +4,13 @@ import React, { useState, useEffect } from "react";
 // Define the WebkitSpeechRecognition interface for TypeScript
 declare global {
   interface Window {
-    webkitSpeechRecognition: any;
+    webkitSpeechRecognition: new () => SpeechRecognition;
   }
 }
 
 // Import necessary components and icons
 import { motion } from "framer-motion";
-import { Mic, MicOff, ArrowRight, Wifi, WifiOff } from "lucide-react";
+import { Mic, MicOff, WifiOff } from "lucide-react";
 
 // Define the type for our personality analysis results
 interface AnalysisResult {
@@ -26,7 +26,9 @@ const PersonalityTest = () => {
   const [answers, setAnswers] = useState<string[]>([]);
   const [currentTranscript, setCurrentTranscript] = useState("");
   const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
-  const [recognition, setRecognition] = useState<any>(null);
+  const [recognition, setRecognition] = useState<SpeechRecognition | null>(
+    null
+  );
   const [progressWidth, setProgressWidth] = useState(0);
 
   // Network error handling states
@@ -50,7 +52,7 @@ const PersonalityTest = () => {
 
   // Initialize speech recognition
   useEffect(() => {
-    if ((window as any).webkitSpeechRecognition) {
+    if (window.webkitSpeechRecognition) {
       const recognition = new window.webkitSpeechRecognition();
 
       // Configure recognition settings
@@ -80,7 +82,7 @@ const PersonalityTest = () => {
       };
 
       // Handle recognition errors
-      recognition.onerror = async (event: any) => {
+      recognition.onerror = async (event: SpeechRecognitionErrorEvent) => {
         console.error("Speech recognition error:", event.error);
 
         if (event.error === "network") {
@@ -190,6 +192,7 @@ const PersonalityTest = () => {
 
   // Personality analysis function
   const analyzePersonality = (allAnswers: string[]) => {
+    console.log(allAnswers);
     // This is a placeholder for the actual analysis logic
     // You would replace this with your actual personality analysis algorithm
     setAnalysis({
