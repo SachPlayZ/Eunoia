@@ -82,7 +82,7 @@ contract Eunoia {
         emit VoteCast(msg.sender, wallet, vote);
     }
 
-    function payAIandVoteTherapist(
+    function payAndVoteAITherapist(
         uint256 amount,
         uint256 vote
     ) public payable {
@@ -182,7 +182,7 @@ contract Eunoia {
             return 0; // Avoid division by zero
         }
 
-        return totalVotesForTherapist / totalVoters;
+        return (totalVotesForTherapist * 100) / totalVoters;
     }
 
     function getTotalVoters(address therapist) external view returns (uint256) {
