@@ -183,7 +183,7 @@ export default function Home() {
                     className="flex-shrink-0 w-80 backdrop-blur-xl bg-white/[0.02] border border-white/[0.05] rounded-2xl p-6"
                   >
                     <p className="text-lg text-blue-100/90 mb-4">
-                      {testimonial.quote}
+                      &quot;{testimonial.quote}&quot;
                     </p>
                     <div>
                       <p className="text-lg font-semibold bg-gradient-to-r from-blue-200 to-purple-200 bg-clip-text text-transparent">
