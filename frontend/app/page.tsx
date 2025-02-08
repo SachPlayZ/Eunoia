@@ -68,14 +68,16 @@ export default function Home() {
         >
           <div className="max-w-4xl mx-auto text-center">
             <h1 className="text-5xl sm:text-6xl md:text-7xl font-bold tracking-tight mb-6 bg-clip-text text-transparent bg-gradient-to-r from-blue-200 via-blue-400 to-purple-200">
-              AI-Powered Therapy for Your Mind
+              Your Safe Space
+              <br />
+              Anytime, Anywhere
             </h1>
             <p className="text-xl md:text-2xl text-blue-200/90 mb-10">
-              Experience personalized mental health support with our advanced AI
-              agents, available 24/7.
+              Experience personalized mental health support with our tailor made
+              AI agents, available 24/7 at your convenience.
             </p>
             <motion.a
-              href="#"
+              href="/personality-test"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               className="inline-block bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-bold py-4 px-10 rounded-full shadow-lg hover:shadow-blue-500/25 transition-all duration-300"
@@ -94,7 +96,7 @@ export default function Home() {
         >
           <div className="max-w-7xl mx-auto">
             <h2 className="text-4xl font-bold text-center mb-16 bg-clip-text text-transparent bg-gradient-to-r from-blue-200 to-purple-200">
-              Why Choose MindAI?
+              Why Choose Eunoia?
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {[
@@ -157,7 +159,7 @@ export default function Home() {
                     name: "Alex P.",
                     role: "Tech Professional",
                     quote:
-                      "MindAI has been a transformative force in my mental health journey. The personalized approach and 24/7 availability make it truly exceptional.",
+                      "Eunoia has been a transformative force in my mental health journey. The personalized approach and 24/7 availability make it truly exceptional.",
                   },
                   {
                     name: "Sam T.",
@@ -169,13 +171,13 @@ export default function Home() {
                     name: "Jamie L.",
                     role: "Student",
                     quote:
-                      "As a busy student, MindAI has been a lifesaver. It's helped me manage stress and improve my focus, all on my own schedule.",
+                      "As a busy student, Eunoia has been a lifesaver. It's helped me manage stress and improve my focus, all on my own schedule.",
                   },
                   {
                     name: "Morgan K.",
                     role: "Healthcare Worker",
                     quote:
-                      "The insights I've gained through MindAI have been invaluable. It's like having a personal therapist and life coach rolled into one.",
+                      "The insights I've gained through Eunoia have been invaluable. It's like having a personal therapist and life coach rolled into one.",
                   },
                 ].map((testimonial, index) => (
                   <div
@@ -211,7 +213,7 @@ export default function Home() {
             </h2>
             <p className="text-xl text-blue-200/90 mb-10">
               Join thousands of users who have discovered inner peace and
-              personal growth with MindAI.
+              personal growth with Eunoia.
             </p>
             <motion.a
               href="#"

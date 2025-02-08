@@ -1,42 +1,160 @@
 "use client";
-import React, { useState, useEffect } from "react";
-
-// Define the WebkitSpeechRecognition interface for TypeScript
-declare global {
-  interface Window {
-    webkitSpeechRecognition: new () => SpeechRecognition;
-  }
-}
-
-// Import necessary components and icons
+import React, { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
-import { Mic, MicOff, WifiOff } from "lucide-react";
+import { Mic, MicOff, WifiOff, Camera, CameraOff } from "lucide-react";
+import { analyzePersonality } from "@/app/utils/api";
 
-// Define the type for our personality analysis results
+// Define interfaces for type safety in our component
 interface AnalysisResult {
-  profile: string;
-  recommendation: string;
+  personalityAnalysis: string;
+  recommendedTherapist: string;
 }
 
-// Main component definition
+interface PersonalityData {
+  question: string;
+  answer: string;
+}
+
+const CameraFeed = () => {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [isCameraOn, setIsCameraOn] = useState(false);
+  const [error, setError] = useState<string>("");
+
+  // Function to start the camera
+  const startCamera = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+        },
+      });
+
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        setIsCameraOn(true);
+        setError("");
+      }
+    } catch (err) {
+      setError("Unable to access camera. Please check permissions.");
+      console.error("Camera access error:", err);
+    }
+  };
+
+  // Function to stop the camera
+  const stopCamera = () => {
+    if (videoRef.current && videoRef.current.srcObject) {
+      const tracks = (videoRef.current.srcObject as MediaStream).getTracks();
+      tracks.forEach((track) => track.stop());
+      videoRef.current.srcObject = null;
+      setIsCameraOn(false);
+    }
+  };
+
+  // Cleanup on component unmount
+  useEffect(() => {
+    return () => {
+      stopCamera();
+    };
+  }, []);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="mt-8 p-6 backdrop-blur-md bg-white/[0.03] border border-white/[0.05] rounded-lg"
+    >
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="text-xl font-semibold text-blue-200">Camera Feed</h3>
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={isCameraOn ? stopCamera : startCamera}
+          className={`flex items-center space-x-2 px-4 py-2 rounded-full ${
+            isCameraOn
+              ? "bg-red-500 hover:bg-red-600"
+              : "bg-gradient-to-r from-blue-500 to-indigo-500"
+          } text-white font-medium transition-all duration-300`}
+        >
+          {isCameraOn ? (
+            <>
+              <CameraOff className="w-4 h-4" />
+              <span>Stop Camera</span>
+            </>
+          ) : (
+            <>
+              <Camera className="w-4 h-4" />
+              <span>Start Camera</span>
+            </>
+          )}
+        </motion.button>
+      </div>
+
+      <div className="relative aspect-video w-full bg-black/20 rounded-lg overflow-hidden">
+        {error ? (
+          <div className="absolute inset-0 flex items-center justify-center text-red-400">
+            {error}
+          </div>
+        ) : (
+          <video
+            ref={videoRef}
+            autoPlay
+            playsInline
+            className="w-full h-full object-cover"
+          />
+        )}
+      </div>
+    </motion.div>
+  );
+};
+
+// Animation variants for smooth transitions between states
+const fadeInUp = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.6, ease: "easeOut" },
+  },
+};
+
+const cardVariants = {
+  hidden: { opacity: 0, scale: 0.95 },
+  visible: {
+    opacity: 1,
+    scale: 1,
+    transition: { duration: 0.5, ease: "easeOut" },
+  },
+};
+
 const PersonalityTest = () => {
-  // State management for speech recognition and UI
+  // State management for core functionality
   const [isListening, setIsListening] = useState(false);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<string[]>([]);
   const [currentTranscript, setCurrentTranscript] = useState("");
+  const [interimTranscript, setInterimTranscript] = useState("");
   const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
   const [recognition, setRecognition] = useState<SpeechRecognition | null>(
     null
   );
-  const [progressWidth, setProgressWidth] = useState(0);
 
-  // Network error handling states
+  // UI state management
+  const [progressWidth, setProgressWidth] = useState(0);
   const [networkError, setNetworkError] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
-  const MAX_RETRIES = 3;
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
 
-  // Questions for the personality test
+  // Refs for managing speech detection timing and processing
+  const silenceTimer = useRef<NodeJS.Timeout | null>(null);
+  const lastSpeechTime = useRef<number>(Date.now());
+  const isProcessing = useRef(false);
+
+  // Configuration constants
+  const MAX_RETRIES = 3;
+  const SILENCE_THRESHOLD = 3000; // Time in milliseconds to wait before considering speech complete
+
+  // Questions for the personality assessment
   const questions = [
     "How do you typically spend your free time?",
     "How do you handle stressful situations?",
@@ -50,12 +168,80 @@ const PersonalityTest = () => {
     "How do you recharge after a demanding day?",
   ];
 
+  // Function to analyze personality based on answers
+  const generateAnalysis = async (questionAnswers: PersonalityData[]) => {
+    setIsAnalyzing(true);
+    try {
+      const result = await analyzePersonality(questionAnswers);
+      setAnalysis({
+        personalityAnalysis: result.personalityAnalysis,
+        recommendedTherapist: result.recommendedTherapist,
+      });
+    } catch (error) {
+      console.error("Error generating analysis:", error);
+      let errorMessage = "An unexpected error occurred during analysis.";
+
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+
+      setAnalysis({
+        personalityAnalysis: `Analysis Error: ${errorMessage}`,
+        recommendedTherapist:
+          "Unable to generate therapist recommendation at this time.",
+      });
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
+  // Function to handle progression to next question
+  const moveToNextQuestion = () => {
+    if (isProcessing.current) return;
+    isProcessing.current = true;
+
+    // Save current answer if it's not empty
+    if (currentTranscript.trim()) {
+      setAnswers((prev) => {
+        const newAnswers = [...prev];
+        newAnswers[currentQuestion] = currentTranscript;
+        return newAnswers;
+      });
+    }
+
+    // Reset transcripts for the next question
+    setCurrentTranscript("");
+    setInterimTranscript("");
+
+    // Check if we're at the last question
+    if (currentQuestion < questions.length - 1) {
+      setCurrentQuestion((prev) => prev + 1);
+      setProgressWidth(((currentQuestion + 2) / questions.length) * 100);
+
+      // Restart recognition for the next question
+      if (recognition) {
+        recognition.stop();
+        setTimeout(() => {
+          recognition.start();
+          isProcessing.current = false;
+        }, 500);
+      }
+    } else {
+      // Process final results when all questions are answered
+      const finalData = questions.map((question, index) => ({
+        question,
+        answer: answers[index] || currentTranscript,
+      }));
+
+      generateAnalysis(finalData);
+      stopListening();
+    }
+  };
+
   // Initialize speech recognition
   useEffect(() => {
     if (window.webkitSpeechRecognition) {
       const recognition = new window.webkitSpeechRecognition();
-
-      // Configure recognition settings
       recognition.continuous = true;
       recognition.interimResults = true;
       recognition.maxAlternatives = 1;
@@ -64,21 +250,33 @@ const PersonalityTest = () => {
       // Handle speech recognition results
       recognition.onresult = (event: SpeechRecognitionEvent) => {
         setNetworkError(false);
-        let finalTranscript = "";
-        let interimTranscript = "";
+        lastSpeechTime.current = Date.now();
 
-        // Process all recognition results
-        for (let i = 0; i < event.results.length; i++) {
+        let currentQuestionTranscript = "";
+
+        // Process only the latest recognition results
+        for (let i = event.resultIndex; i < event.results.length; i++) {
           const transcript = event.results[i][0].transcript;
           if (event.results[i].isFinal) {
-            finalTranscript += transcript;
+            currentQuestionTranscript = transcript;
+            setCurrentTranscript(transcript);
           } else {
-            interimTranscript += transcript;
+            setInterimTranscript(transcript);
           }
         }
 
-        // Update the current transcript
-        setCurrentTranscript(finalTranscript || interimTranscript);
+        // Reset and set silence timer
+        if (silenceTimer.current) {
+          clearTimeout(silenceTimer.current);
+        }
+
+        silenceTimer.current = setTimeout(() => {
+          if (Date.now() - lastSpeechTime.current >= SILENCE_THRESHOLD) {
+            if (currentQuestionTranscript) {
+              moveToNextQuestion();
+            }
+          }
+        }, SILENCE_THRESHOLD);
       };
 
       // Handle recognition errors
@@ -89,7 +287,6 @@ const PersonalityTest = () => {
           setNetworkError(true);
           setIsListening(false);
 
-          // Implement exponential backoff for retries
           if (retryCount < MAX_RETRIES) {
             const backoffTime = Math.pow(2, retryCount) * 1000;
             await new Promise((resolve) => setTimeout(resolve, backoffTime));
@@ -102,78 +299,40 @@ const PersonalityTest = () => {
         }
       };
 
-      // Handle recognition end
+      // Restart recognition when it ends (if still listening)
       recognition.onend = () => {
         if (isListening && !networkError) {
           recognition.start();
-        } else if (!isListening && currentTranscript) {
-          // Save answer and move to next question
-          setAnswers((prev) => {
-            const newAnswers = [...prev];
-            newAnswers[currentQuestion] = currentTranscript;
-            return newAnswers;
-          });
-
-          if (currentQuestion < questions.length - 1) {
-            setCurrentQuestion((prev) => prev + 1);
-            setProgressWidth(((currentQuestion + 2) / questions.length) * 100);
-          } else {
-            // Analyze personality if all questions are answered
-            const allAnswers = [...answers];
-            allAnswers[currentQuestion] = currentTranscript;
-            analyzePersonality(allAnswers);
-          }
-          setCurrentTranscript("");
         }
       };
 
       setRecognition(recognition);
+
+      // Start listening automatically when component mounts
+      setTimeout(() => {
+        startListening();
+      }, 1000);
     }
-  }, [currentQuestion, isListening, retryCount]);
 
-  // Monitor network status
-  useEffect(() => {
-    const handleOnline = () => setNetworkError(false);
-    const handleOffline = () => {
-      setNetworkError(true);
-      setIsListening(false);
-    };
-
-    window.addEventListener("online", handleOnline);
-    window.addEventListener("offline", handleOffline);
-
+    // Cleanup function
     return () => {
-      window.removeEventListener("online", handleOnline);
-      window.removeEventListener("offline", handleOffline);
+      if (silenceTimer.current) {
+        clearTimeout(silenceTimer.current);
+      }
+      if (recognition) {
+        recognition.stop();
+      }
     };
   }, []);
 
-  // Animation variants
-  const fadeInUp = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.6, ease: "easeOut" },
-    },
-  };
-
-  const cardVariants = {
-    hidden: { opacity: 0, scale: 0.95 },
-    visible: {
-      opacity: 1,
-      scale: 1,
-      transition: { duration: 0.5, ease: "easeOut" },
-    },
-  };
-
-  // Recording control functions
+  // Functions to control recording state
   const startListening = () => {
     if (recognition) {
       try {
         recognition.start();
         setIsListening(true);
         setCurrentTranscript("");
+        setInterimTranscript("");
         setNetworkError(false);
       } catch (error) {
         console.error("Error starting recognition:", error);
@@ -188,19 +347,6 @@ const PersonalityTest = () => {
       recognition.stop();
       setIsListening(false);
     }
-  };
-
-  // Personality analysis function
-  const analyzePersonality = (allAnswers: string[]) => {
-    console.log(allAnswers);
-    // This is a placeholder for the actual analysis logic
-    // You would replace this with your actual personality analysis algorithm
-    setAnalysis({
-      profile:
-        "Based on your answers, you appear to be thoughtful and analytical...",
-      recommendation:
-        "Consider speaking with a therapist who specializes in cognitive behavioral therapy...",
-    });
   };
 
   // Network error message component
@@ -318,7 +464,9 @@ const PersonalityTest = () => {
                     >
                       <p className="text-blue-200/90">Currently speaking:</p>
                       <p className="text-white/90 italic mt-2">
-                        {currentTranscript || "Listening..."}
+                        {interimTranscript ||
+                          currentTranscript ||
+                          "Listening..."}
                       </p>
                     </motion.div>
                   )}
@@ -337,6 +485,12 @@ const PersonalityTest = () => {
                     </motion.div>
                   )}
                 </motion.div>
+                <motion.div
+                  variants={cardVariants}
+                  className="backdrop-blur-xl bg-white/[0.02] border border-white/[0.05] rounded-2xl p-8 shadow-lg h-fit"
+                >
+                  <CameraFeed />
+                </motion.div>
               </>
             ) : (
               // Analysis display
@@ -352,26 +506,53 @@ const PersonalityTest = () => {
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.2 }}
-                    className="p-6 backdrop-blur-md bg-white/[0.03] border border-white/[0.05] rounded-lg"
-                  >
-                    <h3 className="text-xl font-semibold mb-3 text-blue-200">
-                      Personality Insights
-                    </h3>
-                    <p className="text-white/90">{analysis.profile}</p>
-                  </motion.div>
-
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.4 }}
                     className="p-6 backdrop-blur-md bg-white/[0.03] border border-white/[0.05] rounded-lg"
                   >
                     <h3 className="text-xl font-semibold mb-3 text-blue-200">
                       Therapist Recommendation
                     </h3>
-                    <p className="text-white/90">{analysis.recommendation}</p>
+                    <p className="text-white/90">
+                      {analysis.recommendedTherapist}
+                    </p>
                   </motion.div>
+
+                  {/* Restart Assessment Button */}
+                  <motion.button
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.6 }}
+                    onClick={() => {
+                      // Reset all state to initial values
+                      setAnalysis(null);
+                      setCurrentQuestion(0);
+                      setAnswers([]);
+                      setProgressWidth(0);
+                      setCurrentTranscript("");
+                      setInterimTranscript("");
+                      // Restart listening after a brief delay to ensure clean state
+                      setTimeout(startListening, 500);
+                    }}
+                    className="w-full mt-6 px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-bold rounded-lg hover:opacity-90 transition-opacity"
+                  >
+                    Start New Assessment
+                  </motion.button>
+                </div>
+              </motion.div>
+            )}
+
+            {/* Loading Overlay - Shown during analysis */}
+            {isAnalyzing && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="absolute inset-0 bg-black/50 backdrop-blur-sm rounded-2xl flex items-center justify-center"
+              >
+                <div className="text-center">
+                  <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+                  <p className="mt-4 text-blue-200">
+                    Analyzing your responses...
+                  </p>
                 </div>
               </motion.div>
             )}

@@ -15,10 +15,10 @@ export default function Navbar() {
             </Link>
           </div>
           <div className="hidden md:flex items-center space-x-4">
-            {["Features", "Testimonials", "Contact"].map((item) => (
+            {["Features", "Testimonials", "Subscriptions"].map((item) => (
               <Link
                 key={item}
-                href={`#${item.toLowerCase()}`}
+                href={`/${item.toLowerCase()}`}
                 className="text-blue-200 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors duration-300 relative group"
               >
                 {item}
