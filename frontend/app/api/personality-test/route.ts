@@ -16,7 +16,7 @@ export async function POST(req: { json: () => any; }) {
     Ensure your responses are supportive, understanding, and insightful.`;
 
     const groqResponse = await groq.chat.completions.create({
-      model: 'mixtral-8x7b-32768',
+      model: 'llama-3.3-70b-versatile',
       messages: [{ role: 'system', content: structuredPrompt }],
     });
 

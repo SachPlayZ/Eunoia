@@ -91,7 +91,7 @@ export async function POST(request: NextRequest) {
           content: createAnalysisPrompt(validatedData.data.data)
         }
       ],
-      model: 'mixtral-8x7b-32768',
+      model: 'llama-3.3-70b-versatile',
       temperature: 0.7,
       max_tokens: 1024,
       response_format: { type: 'json_object' }
