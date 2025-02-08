@@ -3,18 +3,23 @@ pragma solidity ^0.8.18;
 
 contract Eunoia {
     /**Errors */
-    error Eunoia__InsufficientPayment();
+    error Eunoia__humanInsufficientPayment();
+    error Eunoia__aiInsufficientPayment();
     error Eunoia__AlreadyVoted();
     error Eunoia__NotTherapist();
     error Eunoia__TherapistAlreadyExists();
 
     /**Type Declarations */
-    struct therapistDeets {
+    struct humanTherapist {
         // uint256 id;
         string name;
         address walleta;
         uint256 voteCount;
+        uint256 funding;
     }
+ 
+    address aiTherapistWallet = 0x603AB1b3E019F9b80eD0144D5AbE68ebb1Dc158A;
+    uint256 aiTherapistVoteCount = 0;
 
     struct VoteInfo {
         address voter;
@@ -22,10 +27,15 @@ contract Eunoia {
     }
     
     /**State Variables */
+    // uint256 private HumanTherapistCounter=0;
     uint256 private totalVotes;
     uint256 private totalAmount;
     address[] private s_therapist;
-    mapping(address => therapistDeets) private therapists;
+    constructor() {
+        s_therapist.push(aiTherapistWallet);
+    }
+    // mapping(uint256 => aiTherapist) private ai;
+    mapping(address => humanTherapist) private human;
     // mapping(address => mapping(address => bool)) private hasVoted;
     mapping(address => VoteInfo[]) private therapistVotes;
 
@@ -40,38 +50,79 @@ contract Eunoia {
         // if (therapists[wallet]) revert Eunoia__TherapistAlreadyExists();
         
         // therapistCounter++;
-        therapists[wallet] = therapistDeets(name, wallet, 0);
+        human[wallet] = humanTherapist(name, wallet, 0, 0);
+        // HumanTherapistCounter++;
         // therapists[wallet] = true;
 
         emit TherapistAdded(wallet);
     }
 
-    function payTherapist(uint256 amount) public payable {
+    function payAndVoteHumanTherapist(address wallet, uint256 amount, uint256 base, uint256 vote) public payable {
+        if (msg.value < amount + base) {
+            revert Eunoia__humanInsufficientPayment();
+        }
+
+        totalAmount += amount;
+        human[wallet].funding += amount;
+
+        human[wallet].voteCount += vote;
+        totalVotes += vote;
+
+        emit PaymentReceived(msg.sender, amount);
+        emit VoteCast(msg.sender, human[wallet].walleta, msg.value);
+    }
+
+    // function voteHumanTherapist(uint256 humanID, uint256 vote) external payable { // why is it payable???
+    //     require(msg.value > 0, "Must send funds to vote");
+    //     // if (hasVoted[msg.sender][therapist]) revert Eunoia__AlreadyVoted();
+
+    //     human[humanID].voteCount += vote;
+    //     totalVotes += vote;
+    //     // hasVoted[msg.sender][therapist] = true;
+
+    //     // therapistVotes[humanID].push(VoteInfo({
+    //     //     voter: msg.sender,
+    //     //     numberOfVotes: msg.value
+    //     // }));
+
+
+
+    //     emit VoteCast(msg.sender, human[humanID].walleta, msg.value);
+    // }
+
+    function payAIandVoteTherapist(uint256 amount, uint256 vote) public payable {
         if (msg.value < amount) {
-            revert Eunoia__InsufficientPayment();
+            revert Eunoia__aiInsufficientPayment();
         }
 
         totalAmount += amount;
         // therapists[therapist].funding += amount;
 
-        emit PaymentReceived(msg.sender, amount);
-    }
-
-    function voteTherapist(address therapist, uint256 vote) external payable {
-        require(msg.value > 0, "Must send funds to vote");
-        // if (hasVoted[msg.sender][therapist]) revert Eunoia__AlreadyVoted();
-
-        therapists[therapist].voteCount += vote;
+        aiTherapistVoteCount += vote;
         totalVotes += vote;
-        // hasVoted[msg.sender][therapist] = true;
 
-        therapistVotes[therapist].push(VoteInfo({
-            voter: msg.sender,
-            numberOfVotes: msg.value
-        }));
-
-        emit VoteCast(msg.sender, therapist, msg.value);
+        emit PaymentReceived(msg.sender, amount);
+        emit VoteCast(msg.sender, aiTherapistWallet, msg.value);
     }
+
+    // function voteAITherapist(address therapist, uint256 vote) external payable {
+    //     require(msg.value > 0, "Must send funds to vote");
+    //     // if (hasVoted[msg.sender][therapist]) revert Eunoia__AlreadyVoted();
+
+    //     // human[therapist].voteCount += vote;
+    //     aiTherapistVoteCount += vote;
+    //     totalVotes += vote;
+    //     // hasVoted[msg.sender][therapist] = true;
+
+    //     // therapistVotes[therapist].push(VoteInfo({
+    //     //     voter: msg.sender,
+    //     //     numberOfVotes: msg.value
+    //     // }));
+
+
+
+    //     emit VoteCast(msg.sender, therapist, msg.value);
+    // }
 
     function distributeRewards() external {
         uint256 matchingPoolAmount = totalAmount;
@@ -118,9 +169,9 @@ contract Eunoia {
     }
 
     // Getter functions
-    function getTherapistDetails(address therapist) external view returns (therapistDeets memory) {
-        return therapists[therapist];
-    }
+    // function getTherapistDetails(address therapist) external view returns (therapistDeets memory) {
+    //     return therapists[therapist];
+    // }
 
     function getTotalVotes() external view returns (uint256) {
         return totalVotes;
