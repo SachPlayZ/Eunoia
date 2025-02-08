@@ -6,10 +6,11 @@ contract Eunoia {
     error Eunoia__InsufficientPayment();
     error Eunoia__AlreadyVoted();
     error Eunoia__NotTherapist();
+    error Eunoia__TherapistAlreadyExists();
 
     /**Type Declarations */
     struct therapistDeets {
-        uint256 id;
+        // uint256 id;
         string name;
         address walleta;
         uint256 voteCount;
@@ -34,6 +35,17 @@ contract Eunoia {
     event VoteCast(address indexed voter, address indexed therapist, uint256 votes);
     event RewardsDistributed(uint256 totalDistributed);
 
+    /** Functions */
+    function addTherapist(string memory name, address wallet) external {
+        // if (therapists[wallet]) revert Eunoia__TherapistAlreadyExists();
+        
+        // therapistCounter++;
+        therapists[wallet] = therapistDeets(name, wallet, 0);
+        // therapists[wallet] = true;
+
+        emit TherapistAdded(wallet);
+    }
+
     function payTherapist(uint256 amount) public payable {
         if (msg.value < amount) {
             revert Eunoia__InsufficientPayment();
@@ -45,7 +57,7 @@ contract Eunoia {
         emit PaymentReceived(msg.sender, amount);
     }
 
-    function vote(address therapist, uint256 vote) external payable {
+    function voteTherapist(address therapist, uint256 vote) external payable {
         require(msg.value > 0, "Must send funds to vote");
         // if (hasVoted[msg.sender][therapist]) revert Eunoia__AlreadyVoted();
 
