@@ -202,29 +202,30 @@ export default function Home() {
 
         {/* Enhanced CTA Section */}
         <section
-          ref={(el) => {
-            sectionRefs.current[3] = el;
-          }}
-          className="py-24 px-4 sm:px-6 lg:px-8 opacity-0"
-        >
-          <div className="max-w-4xl mx-auto text-center">
-            <h2 className="text-4xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-blue-200 to-purple-200">
-              Ready to Transform Your Mental Health?
-            </h2>
-            <p className="text-xl text-blue-200/90 mb-10">
-              Join thousands of users who have discovered inner peace and
-              personal growth with Eunoia.
-            </p>
-            <motion.a
-              href="#"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="inline-block bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-bold py-4 px-10 rounded-full shadow-lg hover:shadow-blue-500/25 transition-all duration-300"
-            >
-              Get Started Now
-            </motion.a>
-          </div>
-        </section>
+      ref={(el) => {
+        sectionRefs.current[3] = el;
+      }}
+      className="py-24 px-4 sm:px-6 lg:px-8 opacity-0"
+    >
+      <div className="max-w-4xl mx-auto text-center">
+        <h2 className="text-4xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-blue-200 to-purple-200">
+          Are You a Therapist Looking to Make an Impact?
+        </h2>
+        <p className="text-xl text-blue-200/90 mb-10">
+          Join our platform and help individuals on their journey to mental wellness.
+        </p>
+        <div className="flex flex-col sm:flex-row justify-center gap-6">
+          <motion.a
+            href="/signup"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="inline-block bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold py-4 px-10 rounded-full shadow-lg hover:shadow-purple-500/25 transition-all duration-300"
+          >
+            Sign-Up
+          </motion.a>
+        </div>
+      </div>
+    </section>
       </main>
     </div>
   );
