@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Calendar, Clock, Users, BarChart3, Search } from 'lucide-react'
 import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { useState, useRef } from "react"
+import { useState } from "react"
 
 const patients = [
   {
@@ -42,7 +42,6 @@ const fadeInUp = {
 
 export default function TherapistDashboard() {
   const [searchTerm, setSearchTerm] = useState("")
-  const sectionRefs = useRef([])
 
   return (
     <div className="min-h-screen bg-gray-900">
