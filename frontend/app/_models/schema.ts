@@ -2,7 +2,7 @@ import mongoose, { Schema, Document } from "mongoose";
 
 interface ITherapist extends Document {
     fullName: string;
-    typeOfTherapist: string;
+    therapistType: string;
     licenseNumber: string;
     issuingAuthority: string;
     yearsOfExperience: number;
@@ -31,17 +31,16 @@ interface ITherapist extends Document {
 
 const TherapistSchema: Schema = new mongoose.Schema({
     fullName: { type: String, required: true },
-    typeOfTherapist: { type: String, required: true },
+    therapistType: { type: String, required: true },
     licenseNumber: { type: String, required: true },
-    issuingAuthority: { type: String, required: true },
     yearsOfExperience: { type: Number, required: true },
     specialties: { type: [String], required: true },
     email: { type: String, required: true },
     walletAddress: { type: String, required: true },
     availability: {
-        days: { type: [String], required: true },
-        startTime: { type: String, required: true },
-        endTime: { type: String, required: true }
+        days: { type: [String], required: false },
+        startTime: { type: String, required: false },
+        endTime: { type: String, required: false }
     },
     certifications: { type: [String], required: false },
     consultationFeeETH: { type: Number, required: true }
