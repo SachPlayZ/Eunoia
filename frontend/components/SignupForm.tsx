@@ -5,13 +5,35 @@ import { motion } from "framer-motion";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+  SelectValue,
+} from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { FileUpload } from "@/components/FileUpload";
 import { useAccount } from "wagmi";
+import { useAddTherapist } from "@/functions/addTherapist";
+import abi from "@/app/abi";
 
-const therapistTypes = ["Psychologist", "Counselor", "Psychiatrist", "Social Worker", "Marriage and Family Therapist"];
-const specialties = ["Anxiety", "Depression", "PTSD", "Addiction", "Relationship Issues", "Eating Disorders", "Trauma"];
+const therapistTypes = [
+  "Psychologist",
+  "Counselor",
+  "Psychiatrist",
+  "Social Worker",
+  "Marriage and Family Therapist",
+];
+const specialties = [
+  "Anxiety",
+  "Depression",
+  "PTSD",
+  "Addiction",
+  "Relationship Issues",
+  "Eating Disorders",
+  "Trauma",
+];
 
 interface FormData {
   fullName: string;
@@ -31,8 +53,20 @@ export default function SignUpForm() {
     control,
     formState: { errors },
   } = useForm<FormData>();
-  const {address : walletAddress} = useAccount();
+  const { address: walletAddress } = useAccount();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const {
+    addTherapist,
+    isLoading,
+    isSuccess,
+    isError,
+    loadingTx,
+    isSuccessTx,
+    isErrorTx,
+  } = useAddTherapist({
+    contractAddress: process.env.CONTRACT_ADDRESS as `0x${string}`,
+    abi: abi,
+  });
 
   const onSubmit = async (data: FormData) => {
     setIsSubmitting(true);
@@ -46,7 +80,10 @@ export default function SignUpForm() {
         },
         body: JSON.stringify({ ...data, walletAddress }),
       });
-
+      await addTherapist({
+        name: data.fullName,
+        wallet: walletAddress!.toString(),
+      });
       if (!response.ok) {
         throw new Error("Network response was not ok");
       }
@@ -68,7 +105,9 @@ export default function SignUpForm() {
       onSubmit={handleSubmit(onSubmit)}
       className="space-y-6 w-full max-w-lg bg-white p-8 rounded-lg shadow-xl"
     >
-      <h2 className="text-3xl font-bold text-blue-900 mb-6 text-center">Therapist Sign-Up</h2>
+      <h2 className="text-3xl font-bold text-blue-900 mb-6 text-center">
+        Therapist Sign-Up
+      </h2>
 
       <div>
         <Label htmlFor="fullName" className="text-blue-900">
@@ -79,7 +118,9 @@ export default function SignUpForm() {
           {...register("fullName", { required: "Full name is required" })}
           className="border-blue-200 focus:border-blue-500 focus:ring-blue-500"
         />
-        {errors.fullName && <p className="text-red-500 text-sm mt-1">{errors.fullName.message}</p>}
+        {errors.fullName && (
+          <p className="text-red-500 text-sm mt-1">{errors.fullName.message}</p>
+        )}
       </div>
 
       <div>
@@ -105,7 +146,11 @@ export default function SignUpForm() {
             </Select>
           )}
         />
-        {errors.therapistType && <p className="text-red-500 text-sm mt-1">{errors.therapistType.message}</p>}
+        {errors.therapistType && (
+          <p className="text-red-500 text-sm mt-1">
+            {errors.therapistType.message}
+          </p>
+        )}
       </div>
 
       <div>
@@ -117,10 +162,17 @@ export default function SignUpForm() {
           id="yearsOfExperience"
           min="0"
           step="1"
-          {...register("yearsOfExperience", { required: "This field is required", min: 0 })}
+          {...register("yearsOfExperience", {
+            required: "This field is required",
+            min: 0,
+          })}
           className="border-blue-200 focus:border-blue-500 focus:ring-blue-500"
         />
-        {errors.yearsOfExperience && <p className="text-red-500 text-sm mt-1">{errors.yearsOfExperience.message}</p>}
+        {errors.yearsOfExperience && (
+          <p className="text-red-500 text-sm mt-1">
+            {errors.yearsOfExperience.message}
+          </p>
+        )}
       </div>
 
       <div>
@@ -155,7 +207,9 @@ export default function SignUpForm() {
           })}
           className="border-blue-200 focus:border-blue-500 focus:ring-blue-500"
         />
-        {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>}
+        {errors.email && (
+          <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>
+        )}
       </div>
 
       <div>
@@ -178,12 +232,17 @@ export default function SignUpForm() {
             required: "License number is required",
             pattern: {
               value: /^[A-Za-z0-9-]+$/,
-              message: "License number can only contain letters, numbers, and hyphens",
+              message:
+                "License number can only contain letters, numbers, and hyphens",
             },
           })}
           className="border-blue-200 focus:border-blue-500 focus:ring-blue-500"
         />
-        {errors.licenseNumber && <p className="text-red-500 text-sm mt-1">{errors.licenseNumber.message}</p>}
+        {errors.licenseNumber && (
+          <p className="text-red-500 text-sm mt-1">
+            {errors.licenseNumber.message}
+          </p>
+        )}
       </div>
       <div>
         <Label htmlFor="consultationFeeETH" className="text-blue-900">
@@ -194,12 +253,23 @@ export default function SignUpForm() {
           id="consultationFeeETH"
           min="0"
           step="0.01"
-          {...register("consultationFeeETH", { required: "This field is required", min: 0 })}
+          {...register("consultationFeeETH", {
+            required: "This field is required",
+            min: 0,
+          })}
           className="border-blue-200 focus:border-blue-500 focus:ring-blue-500"
         />
-       {errors.consultationFeeETH && <p className="text-red-500 text-sm mt-1">{errors.consultationFeeETH.message}</p>}
+        {errors.consultationFeeETH && (
+          <p className="text-red-500 text-sm mt-1">
+            {errors.consultationFeeETH.message}
+          </p>
+        )}
       </div>
-      <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white" disabled={isSubmitting}>
+      <Button
+        type="submit"
+        className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+        disabled={isSubmitting}
+      >
         {isSubmitting ? "Signing Up..." : "Sign Up"}
       </Button>
     </motion.form>
