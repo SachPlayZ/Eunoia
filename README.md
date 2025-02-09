@@ -1,6 +1,6 @@
 # Eunoia: On-Chain Mental Therapy
 
-![WhatsApp Image 2025-02-09 at 08 02 00_90e5f606](https://github.com/user-attachments/assets/af5a6ad5-45cd-4fe3-ab99-1d9ee87025e1) {width=64 px height=64 px}
+![WhatsApp Image 2025-02-09 at 08 02 00_90e5f606 width=64 px height=64 px](https://github.com/user-attachments/assets/af5a6ad5-45cd-4fe3-ab99-1d9ee87025e1)
 
 ## Overview
 Eunoia is a revolutionary decentralized mental health platform that integrates blockchain technology to provide personalized therapy solutions. By leveraging AI-driven personality analysis and speech recognition, Eunoia offers a tailored mental health experience that ensures transparency, security, and accessibility.
