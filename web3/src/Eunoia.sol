@@ -20,7 +20,6 @@ contract Eunoia {
         uint256[] votes;
         uint256 totalVotes;
     }
-
     /**State Variables */
     address immutable aiTherapistWallet;
     uint256 private totalVotes;
@@ -156,21 +155,13 @@ contract Eunoia {
 
     /**Getter Functions */
 
-    // function getTotalVotes() external view returns (uint256) {
-    //     return totalVotes;
-    // }
+    function getTotalAmount() external view returns (uint256) {
+        return totalAmount;
+    }
 
-    // function getVoterInfo(address therapist, address voter) external view returns (VoteInfo memory) {
-    //     return therapistVoters[therapist][voter];
-    // }
-
-    // function getRating(address therapist) external view returns (uint256) {
-    //     uint256 tvotes = 0;
-    //     for (uint256 i = 0; i < therapistVoterList[therapist].length; i++) {
-    //         tvotes += therapistVoters[therapist][therapistVoterList[therapist][i]].totalVotes;
-    //     }
-    //     return ;
-    // }
+    function getTotalVotes() external view returns (uint256) {
+        return totalVotes;
+    }
 
     function getAverageVotes(
         address therapist
