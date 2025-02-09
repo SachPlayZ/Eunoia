@@ -57,7 +57,7 @@ export default function SignUpForm() {
   const { address: walletAddress } = useAccount();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { addTherapist } = useAddTherapist({
-    contractAddress: process.env.CONTRACT_ADDRESS as `0x${string}`,
+    contractAddress: "0xe72442D80Fb85CDB85Cc9B197B25055aB79712dA",
     abi: abi,
   });
   const router = useRouter();
