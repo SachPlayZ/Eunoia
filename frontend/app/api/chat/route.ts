@@ -1,4 +1,10 @@
 import { NextRequest } from 'next/server';
+
+interface ChatInput {
+  context: string;
+  conversationHistory: string;
+  question: string;
+}
 import connectDB from "@/app/_middleware/mongodb";
 import PersonalityTestResult from "@/app/_models/personalityResultSchema";
 import ChatHistory from "@/app/_models/ChatHistory";
@@ -61,7 +67,7 @@ export async function POST(req: NextRequest) {
     let chatHistory = await ChatHistory.findOne({ walletAddress });
     const conversationHistory = chatHistory?.messages
       ?.slice(-6)
-      ?.map((msg: { role: any; message: any; }) => `${msg.role}: ${msg.message}`)
+      ?.map((msg: { role: string; message: string; }) => `${msg.role}: ${msg.message}`)
       ?.join('\n') || 'No previous conversation';
 
     // Updated prompt with bilingual instruction
@@ -87,9 +93,9 @@ export async function POST(req: NextRequest) {
 
     const chain = RunnableSequence.from([
       {
-        context: (input: any) => input.context,
-        conversationHistory: (input: any) => input.conversationHistory,
-        question: (input: any) => input.question,
+        context: (input: ChatInput) => input.context,
+        conversationHistory: (input: ChatInput) => input.conversationHistory,
+        question: (input: ChatInput) => input.question,
       },
       prompt,
       model,

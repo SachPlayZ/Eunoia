@@ -165,11 +165,9 @@ const PersonalityTest = () => {
   // Refs for managing speech detection
   const silenceTimer = useRef<NodeJS.Timeout | null>(null);
   const lastSpeechTime = useRef<number>(Date.now());
-  const isProcessing = useRef(false);
 
   // Configuration constants
   const MAX_RETRIES = 3;
-  const SILENCE_THRESHOLD = 3000;
 
   // Questions for the personality assessment
   const questions = [
@@ -194,6 +192,7 @@ const PersonalityTest = () => {
         personalityAnalysis: result.personalityAnalysis,
         recommendedTherapist: result.recommendedTherapist,
       });
+      console.log("interimTranscript", interimTranscript);
       const resultData = {
         walletAddress: address,
         personalityAnalysis: result.personalityAnalysis,

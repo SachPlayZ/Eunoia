@@ -1,10 +1,11 @@
-import  connectDB from "@/app/_middleware/mongodb";
+import { NextRequest } from "next/server";
+import connectDB from "@/app/_middleware/mongodb";
 import PersonalityTestResult from "@/app/_models/personalityResultSchema";
 
-export async function POST(req: { json: () => PromiseLike<{ walletAddress: any; }> | { walletAddress: any; }; }) {
+export async function POST(req: NextRequest) {
   try {
     await connectDB();
-    const { walletAddress } = await req.json();
+    const { walletAddress } = await req.json(); // Properly parse JSON from NextRequest
 
     if (!walletAddress) {
       return new Response(JSON.stringify({ error: "Wallet address required" }), {

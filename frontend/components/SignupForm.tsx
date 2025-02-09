@@ -56,15 +56,7 @@ export default function SignUpForm() {
   } = useForm<FormData>();
   const { address: walletAddress } = useAccount();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const {
-    addTherapist,
-    isLoading,
-    isSuccess,
-    isError,
-    loadingTx,
-    isSuccessTx,
-    isErrorTx,
-  } = useAddTherapist({
+  const { addTherapist } = useAddTherapist({
     contractAddress: process.env.CONTRACT_ADDRESS as `0x${string}`,
     abi: abi,
   });

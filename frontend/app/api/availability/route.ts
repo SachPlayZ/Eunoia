@@ -17,8 +17,8 @@ export async function POST(req: NextRequest) {
 
     await availability.save();
     return NextResponse.json({ success: true, availability }, { status: 200 });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error) {
+    return NextResponse.json({ error: (error as Error).message }, { status: 500 });
   }
 }
 
@@ -36,7 +36,7 @@ export async function GET(req: NextRequest) {
 
     const availability = await Availability.findOne({ therapistId, date });
     return NextResponse.json({ success: true, availability }, { status: 200 });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error) {
+    return NextResponse.json({ error: (error as Error).message }, { status: 500 });
   }
 }

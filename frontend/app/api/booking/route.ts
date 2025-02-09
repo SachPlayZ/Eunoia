@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'No availability found' }, { status: 404 });
     }
 
-    const slot = availability.timeSlots.find((slot: any) => slot.time === time);
+    const slot = availability.timeSlots.find((slot: { time: Date; }) => slot.time === time);
     if (!slot || slot.isBooked) {
       return NextResponse.json({ error: 'Slot already booked' }, { status: 400 });
     }
@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
     await availability.save();
 
     return NextResponse.json({ success: true, availability }, { status: 200 });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error) {
+    return NextResponse.json({ error: (error as Error).message }, { status: 500 });
   }
 }
