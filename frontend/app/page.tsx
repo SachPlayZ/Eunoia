@@ -73,8 +73,7 @@ export default function Home() {
               Anytime, Anywhere
             </h1>
             <p className="text-xl md:text-2xl text-blue-200/90 mb-10">
-              Experience personalized mental health support with our tailor made
-              AI agents, available 24/7 at your convenience.
+              Experience personalized mental health support with our tailor-made AI agents, available 24/7 at your convenience.
             </p>
             <motion.a
               href="/personality-test"
@@ -89,6 +88,7 @@ export default function Home() {
 
         {/* Enhanced Features Section */}
         <section
+          id="features"
           ref={(el) => {
             sectionRefs.current[1] = el;
           }}
@@ -143,6 +143,7 @@ export default function Home() {
 
         {/* Infinitely Scrolling Testimonials Carousel */}
         <section
+          id="testimonials"
           ref={(el) => {
             sectionRefs.current[2] = el;
           }}
@@ -212,8 +213,7 @@ export default function Home() {
               Are You a Therapist Looking to Make an Impact?
             </h2>
             <p className="text-xl text-blue-200/90 mb-10">
-              Join our platform and help individuals on their journey to mental
-              wellness.
+              Join our platform and help individuals on their journey to mental wellness.
             </p>
             <div className="flex flex-col sm:flex-row justify-center gap-6">
               <motion.a
