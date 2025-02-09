@@ -9,6 +9,7 @@ import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { FileUpload } from "@/components/FileUpload";
 import { useAccount } from "wagmi";
+import { useRouter } from "next/navigation";
 
 const therapistTypes = ["Psychologist", "Counselor", "Psychiatrist", "Social Worker", "Marriage and Family Therapist"];
 const specialties = ["Anxiety", "Depression", "PTSD", "Addiction", "Relationship Issues", "Eating Disorders", "Trauma"];
@@ -33,6 +34,7 @@ export default function SignUpForm() {
   } = useForm<FormData>();
   const {address : walletAddress} = useAccount();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const router = useRouter();
 
   const onSubmit = async (data: FormData) => {
     setIsSubmitting(true);
@@ -53,6 +55,7 @@ export default function SignUpForm() {
 
       const result = await response.json();
       console.log("Success:", result);
+      router.push("/therapist");
     } catch (error) {
       console.error("There was a problem with the fetch operation:", error);
     } finally {
