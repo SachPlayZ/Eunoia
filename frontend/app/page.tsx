@@ -73,8 +73,7 @@ export default function Home() {
               Anytime, Anywhere
             </h1>
             <p className="text-xl md:text-2xl text-blue-200/90 mb-10">
-              Experience personalized mental health support with our tailor made
-              AI agents, available 24/7 at your convenience.
+              Experience personalized mental health support with our tailor-made AI agents, available 24/7 at your convenience.
             </p>
             <motion.a
               href="/personality-test"
@@ -89,6 +88,7 @@ export default function Home() {
 
         {/* Enhanced Features Section */}
         <section
+          id="features"
           ref={(el) => {
             sectionRefs.current[1] = el;
           }}
@@ -143,6 +143,7 @@ export default function Home() {
 
         {/* Infinitely Scrolling Testimonials Carousel */}
         <section
+          id="testimonials"
           ref={(el) => {
             sectionRefs.current[2] = el;
           }}
@@ -202,30 +203,30 @@ export default function Home() {
 
         {/* Enhanced CTA Section */}
         <section
-      ref={(el) => {
-        sectionRefs.current[3] = el;
-      }}
-      className="py-24 px-4 sm:px-6 lg:px-8 opacity-0"
-    >
-      <div className="max-w-4xl mx-auto text-center">
-        <h2 className="text-4xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-blue-200 to-purple-200">
-          Are You a Therapist Looking to Make an Impact?
-        </h2>
-        <p className="text-xl text-blue-200/90 mb-10">
-          Join our platform and help individuals on their journey to mental wellness.
-        </p>
-        <div className="flex flex-col sm:flex-row justify-center gap-6">
-          <motion.a
-            href="/signup"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="inline-block bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold py-4 px-10 rounded-full shadow-lg hover:shadow-purple-500/25 transition-all duration-300"
-          >
-            Sign-Up
-          </motion.a>
-        </div>
-      </div>
-    </section>
+          ref={(el) => {
+            sectionRefs.current[3] = el;
+          }}
+          className="py-24 px-4 sm:px-6 lg:px-8 opacity-0"
+        >
+          <div className="max-w-4xl mx-auto text-center">
+            <h2 className="text-4xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-blue-200 to-purple-200">
+              Are You a Therapist Looking to Make an Impact?
+            </h2>
+            <p className="text-xl text-blue-200/90 mb-10">
+              Join our platform and help individuals on their journey to mental wellness.
+            </p>
+            <div className="flex flex-col sm:flex-row justify-center gap-6">
+              <motion.a
+                href="/signup"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="inline-block bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold py-4 px-10 rounded-full shadow-lg hover:shadow-purple-500/25 transition-all duration-300"
+              >
+                Sign-Up
+              </motion.a>
+            </div>
+          </div>
+        </section>
       </main>
     </div>
   );

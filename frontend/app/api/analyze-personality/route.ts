@@ -40,24 +40,30 @@ class AnalysisError extends Error {
 
 // Helper function to create the analysis prompt
 function createAnalysisPrompt(data: { question: string; answer: string }[]): string {
-  const formattedQA = data
-    .map(qa => `Question: ${qa.question}\nAnswer: ${qa.answer}`)
-    .join('\n\n');
-
-  return `As an expert psychologist, analyze the following personality assessment responses and provide two things:
-    1. A detailed personality analysis
-    2. A specific recommendation for the type of therapist that would be most helpful for this person
-    
-    Here are the responses:
-    
-    ${formattedQA}
-    
-    Please provide your analysis in JSON format with two fields:
-    - personalityAnalysis: A detailed analysis of their personality traits, communication style, and behavioral patterns
-    - recommendedTherapist: A specific recommendation for the type of therapist that would be most beneficial, including the therapeutic approach that would work best
-    
-    Focus on being constructive and empathetic in your analysis.`;
-}
+    const formattedQA = data
+      .map(qa => `Question: ${qa.question}\nAnswer: ${qa.answer}`)
+      .join('\n\n');
+  
+    return `As an expert psychologist, analyze the following personality assessment responses and provide a detailed analysis in the following JSON format:
+  
+      {
+        "personalityAnalysis": {
+          "personalityTraits": "A detailed description of the individual's personality traits",
+          "communicationStyle": "A detailed description of the individual's communication style",
+          "behavioralPatterns": "A detailed description of the individual's behavioral patterns"
+        },
+        "recommendedTherapist": {
+          "typeOfTherapist": "The specific type of therapist recommended",
+          "therapeuticApproach": "The therapeutic approach that would be most beneficial"
+        }
+      }
+  
+      Here are the responses:
+      
+      ${formattedQA}
+      
+      Please ensure that the analysis is constructive and empathetic.`;
+  }
 
 // Main API route handler
 export async function POST(request: NextRequest) {
@@ -85,7 +91,7 @@ export async function POST(request: NextRequest) {
           content: createAnalysisPrompt(validatedData.data.data)
         }
       ],
-      model: 'mixtral-8x7b-32768',
+      model: 'llama-3.3-70b-versatile',
       temperature: 0.7,
       max_tokens: 1024,
       response_format: { type: 'json_object' }
@@ -93,14 +99,13 @@ export async function POST(request: NextRequest) {
 
     // Extract and validate the response
     const responseContent = completion.choices[0]?.message?.content;
-    console.log('GROQ response:', responseContent);
+    console.log('Personality analysis response:', responseContent);
     if (!responseContent) {
       throw new AnalysisError('No analysis generated', 500);
     }
 
     // Parse and validate the GROQ response
     const analysis = JSON.parse(responseContent) as AnalysisResponse;
-    console.log('Personality analysis:', analysis);
     
     if (!analysis.personalityAnalysis || !analysis.recommendedTherapist) {
       throw new AnalysisError('Invalid analysis format', 500);

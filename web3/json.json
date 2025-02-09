@@ -1,0 +1,36 @@
+{
+    "language": "Solidity",
+    "sources": {
+        "src/Eunoia.sol": {
+            "content": "// SPDX-License-Identifier: MIT\npragma solidity ^0.8.18;\n\ncontract Eunoia {\n    /**Errors */\n    error Eunoia__humanInsufficientPayment();\n    error Eunoia__aiInsufficientPayment();\n    error Eunoia__TherapistAlreadyExists();\n\n    /**Type Declarations */\n    struct humanTherapist {\n        string name;\n        address walleta;\n        uint256 voteCount;\n        uint256 funding;\n    }\n\n    struct VoteInfo {\n        address voter;\n        uint256[] votes;\n        uint256 totalVotes;\n    }\n\n    /**State Variables */\n    address immutable aiTherapistWallet;\n    uint256 private totalVotes;\n    uint256 private totalAmount;\n    address[] private s_therapist;\n\n    mapping(address => humanTherapist) private human;\n    mapping(address => mapping(address => VoteInfo)) private therapistVoters;\n    mapping(address => address[]) private therapistVoterList;\n\n    /**Events */\n    event TherapistAdded(address indexed therapist);\n    event PaymentReceived(address indexed patient, uint256 amount);\n    event VoteCast(\n        address indexed voter,\n        address indexed therapist,\n        uint256 votes\n    );\n    event RewardsDistributed(uint256 totalDistributed);\n\n    constructor() {\n        aiTherapistWallet = 0x603AB1b3E019F9b80eD0144D5AbE68ebb1Dc158A;\n        s_therapist.push(aiTherapistWallet);\n    }\n\n    function addTherapist(string memory name, address wallet) external {\n        if (human[wallet].walleta != address(0))\n            revert Eunoia__TherapistAlreadyExists();\n\n        human[wallet] = humanTherapist(name, wallet, 0, 0);\n        s_therapist.push(wallet);\n        emit TherapistAdded(wallet);\n    }\n\n    function payAndVoteHumanTherapist(\n        address wallet,\n        uint256 amount,\n        uint256 base,\n        uint256 vote\n    ) public payable {\n        if (msg.value < amount + base) {\n            revert Eunoia__humanInsufficientPayment();\n        }\n\n        totalAmount += amount;\n        human[wallet].funding += amount;\n        human[wallet].voteCount += vote;\n        totalVotes += vote;\n\n        VoteInfo storage voterInfo = therapistVoters[wallet][msg.sender];\n        if (voterInfo.voter == address(0)) {\n            therapistVoterList[wallet].push(msg.sender);\n            voterInfo.voter = msg.sender;\n        }\n        voterInfo.votes.push(vote);\n        voterInfo.totalVotes += vote;\n\n        emit PaymentReceived(msg.sender, amount);\n        emit VoteCast(msg.sender, wallet, vote);\n    }\n\n    function payAndVoteAITherapist(\n        uint256 amount,\n        uint256 vote\n    ) public payable {\n        if (msg.value < amount) {\n            revert Eunoia__aiInsufficientPayment();\n        }\n\n        totalAmount += amount;\n        totalVotes += vote;\n\n        VoteInfo storage voterInfo = therapistVoters[aiTherapistWallet][\n            msg.sender\n        ];\n        if (voterInfo.voter == address(0)) {\n            therapistVoterList[aiTherapistWallet].push(msg.sender);\n            voterInfo.voter = msg.sender;\n        }\n        voterInfo.votes.push(vote);\n        voterInfo.totalVotes += vote;\n\n        emit PaymentReceived(msg.sender, amount);\n        emit VoteCast(msg.sender, aiTherapistWallet, vote);\n    }\n\n    function distributeRewards() external {\n        uint256 matchingPoolAmount = totalAmount;\n        uint256[] memory sumOfSqrts = new uint256[](s_therapist.length);\n        uint256 totalSumOfSqrts = 0;\n\n        // Calculate quadratic funding for each therapist\n        for (uint256 i = 0; i < s_therapist.length; i++) {\n            address therapistAddr = s_therapist[i];\n            address[] storage voters = therapistVoterList[therapistAddr];\n            uint256 sumOfSqrt = 0;\n\n            // Sum square roots of each voter's total contributions\n            for (uint256 j = 0; j < voters.length; j++) {\n                VoteInfo storage voterInfo = therapistVoters[therapistAddr][\n                    voters[j]\n                ];\n                sumOfSqrt += sqrt(voterInfo.totalVotes);\n            }\n\n            sumOfSqrt = sumOfSqrt ** 2;\n            sumOfSqrts[i] = sumOfSqrt;\n            totalSumOfSqrts += sumOfSqrt;\n        }\n\n        // Distribute rewards\n        if (totalSumOfSqrts > 0) {\n            for (uint256 i = 0; i < s_therapist.length; i++) {\n                address therapistAddr = s_therapist[i];\n                uint256 matchedAmount = (matchingPoolAmount * sumOfSqrts[i]) /\n                    totalSumOfSqrts;\n                payable(therapistAddr).transfer(matchedAmount);\n            }\n        }\n\n        emit RewardsDistributed(matchingPoolAmount);\n    }\n\n    function sqrt(uint256 x) private pure returns (uint256) {\n        uint256 z = (x + 1) / 2;\n        uint256 y = x;\n        while (z < y) {\n            y = z;\n            z = (x / z + z) / 2;\n        }\n        return y;\n    }\n\n    /**Getter Functions */\n\n    // function getTotalVotes() external view returns (uint256) {\n    //     return totalVotes;\n    // }\n\n    // function getVoterInfo(address therapist, address voter) external view returns (VoteInfo memory) {\n    //     return therapistVoters[therapist][voter];\n    // }\n\n    // function getRating(address therapist) external view returns (uint256) {\n    //     uint256 tvotes = 0;\n    //     for (uint256 i = 0; i < therapistVoterList[therapist].length; i++) {\n    //         tvotes += therapistVoters[therapist][therapistVoterList[therapist][i]].totalVotes;\n    //     }\n    //     return ;\n    // }\n\n    function getAverageVotes(\n        address therapist\n    ) external view returns (uint256) {\n        uint256 totalVotesForTherapist = human[therapist].voteCount;\n        uint256 totalVoters = therapistVoterList[therapist].length;\n\n        if (totalVoters == 0) {\n            return 0; // Avoid division by zero\n        }\n\n        return (totalVotesForTherapist * 100) / totalVoters;\n    }\n\n    function getTotalVoters(address therapist) external view returns (uint256) {\n        return therapistVoterList[therapist].length;\n    }\n}\n"
+        }
+    },
+    "settings": {
+        "remappings": [
+            "forge-std/=lib/forge-std/src/"
+        ],
+        "optimizer": {
+            "enabled": true,
+            "runs": 200
+        },
+        "metadata": {
+            "useLiteralContent": false,
+            "bytecodeHash": "ipfs",
+            "appendCBOR": true
+        },
+        "outputSelection": {
+            "*": {
+                "*": [
+                    "abi",
+                    "evm.bytecode",
+                    "evm.deployedBytecode",
+                    "evm.methodIdentifiers",
+                    "metadata"
+                ]
+            }
+        },
+        "evmVersion": "paris",
+        "viaIR": false,
+        "libraries": {}
+    }
+}
