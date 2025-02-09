@@ -17,6 +17,7 @@ import { FileUpload } from "@/components/FileUpload";
 import { useAccount } from "wagmi";
 import { useAddTherapist } from "@/functions/addTherapist";
 import abi from "@/app/abi";
+import { useRouter } from "next/navigation";
 
 const therapistTypes = [
   "Psychologist",
@@ -67,6 +68,7 @@ export default function SignUpForm() {
     contractAddress: process.env.CONTRACT_ADDRESS as `0x${string}`,
     abi: abi,
   });
+  const router = useRouter();
 
   const onSubmit = async (data: FormData) => {
     setIsSubmitting(true);
@@ -90,6 +92,7 @@ export default function SignUpForm() {
 
       const result = await response.json();
       console.log("Success:", result);
+      router.push("/therapist");
     } catch (error) {
       console.error("There was a problem with the fetch operation:", error);
     } finally {
