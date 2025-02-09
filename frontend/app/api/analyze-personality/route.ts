@@ -1,4 +1,3 @@
-// app/api/analyze-personality/route.ts
 import { NextRequest } from 'next/server';
 import { Groq } from 'groq-sdk';
 import { z } from 'zod';
@@ -21,9 +20,20 @@ const PersonalityDataSchema = z.object({
 });
 
 // Define response types for better type safety
+interface PersonalityAnalysis {
+  personalityTraits: string;
+  communicationStyle: string;
+  behavioralPatterns: string;
+}
+
+interface RecommendedTherapist {
+  typeOfTherapist: string;
+  therapeuticApproach: string;
+}
+
 interface AnalysisResponse {
-  personalityAnalysis: string;
-  recommendedTherapist: string;
+  personalityAnalysis: PersonalityAnalysis;
+  recommendedTherapist: RecommendedTherapist;
 }
 
 // Custom error class for structured error handling
@@ -40,30 +50,30 @@ class AnalysisError extends Error {
 
 // Helper function to create the analysis prompt
 function createAnalysisPrompt(data: { question: string; answer: string }[]): string {
-    const formattedQA = data
-      .map(qa => `Question: ${qa.question}\nAnswer: ${qa.answer}`)
-      .join('\n\n');
-  
-    return `As an expert psychologist, analyze the following personality assessment responses and provide a detailed analysis in the following JSON format:
-  
-      {
-        "personalityAnalysis": {
-          "personalityTraits": "A detailed description of the individual's personality traits",
-          "communicationStyle": "A detailed description of the individual's communication style",
-          "behavioralPatterns": "A detailed description of the individual's behavioral patterns"
-        },
-        "recommendedTherapist": {
-          "typeOfTherapist": "The specific type of therapist recommended",
-          "therapeuticApproach": "The therapeutic approach that would be most beneficial"
-        }
+  const formattedQA = data
+    .map(qa => `Question: ${qa.question}\nAnswer: ${qa.answer}`)
+    .join('\n\n');
+
+  return `As an expert psychologist, analyze the following personality assessment responses and provide a detailed analysis in the following JSON format:
+
+    {
+      "personalityAnalysis": {
+        "personalityTraits": "A detailed description of the individual's personality traits",
+        "communicationStyle": "A detailed description of the individual's communication style",
+        "behavioralPatterns": "A detailed description of the individual's behavioral patterns"
+      },
+      "recommendedTherapist": {
+        "typeOfTherapist": "The specific type of therapist recommended",
+        "therapeuticApproach": "The therapeutic approach that would be most beneficial"
       }
-  
-      Here are the responses:
-      
-      ${formattedQA}
-      
-      Please ensure that the analysis is constructive and empathetic.`;
-  }
+    }
+
+    Here are the responses:
+    
+    ${formattedQA}
+    
+    Please ensure that the analysis is constructive and empathetic.`;
+}
 
 // Main API route handler
 export async function POST(request: NextRequest) {
@@ -106,8 +116,16 @@ export async function POST(request: NextRequest) {
 
     // Parse and validate the GROQ response
     const analysis = JSON.parse(responseContent) as AnalysisResponse;
-    
-    if (!analysis.personalityAnalysis || !analysis.recommendedTherapist) {
+
+    if (
+      !analysis.personalityAnalysis ||
+      !analysis.personalityAnalysis.personalityTraits ||
+      !analysis.personalityAnalysis.communicationStyle ||
+      !analysis.personalityAnalysis.behavioralPatterns ||
+      !analysis.recommendedTherapist ||
+      !analysis.recommendedTherapist.typeOfTherapist ||
+      !analysis.recommendedTherapist.therapeuticApproach
+    ) {
       throw new AnalysisError('Invalid analysis format', 500);
     }
 
@@ -154,4 +172,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-
