@@ -1,3 +1,5 @@
+![WhatsApp Image 2025-02-09 at 08 02 00_90e5f606](https://github.com/user-attachments/assets/af5a6ad5-45cd-4fe3-ab99-1d9ee87025e1)
+
 # Eunoia: On-Chain Mental Therapy
 
 ## Overview
